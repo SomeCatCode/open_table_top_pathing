@@ -1,0 +1,119 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#ottp-action-navigation {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    display: block;
+    z-index: 100;
+    box-shadow: inset 0px 1px 3px 0px #91b8b3;
+    background: linear-gradient(to bottom, #768d87 5%, #6c7c7c 100%);
+    background-color: #768d87;
+    border-radius: 5px;
+    border: 1px solid #566963;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Arial;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 6px 9px;
+    text-decoration: none;
+    text-shadow: 0px -1px 0px #2b665e;
+}
+
+#ottp-action-navigation::before {
+    content: "⬤"; /* Verwendet das Unicode-Zeichen für einen großen Kreis */
+    color: #ffffff;
+    font-size: 14px; /* Passt die Größe des Punktes an */
+    margin-right: 5px; /* Fügt einen Abstand nach rechts hinzu, falls benötigt */
+}
+
+#ottp-action-navigation.running::before {
+    color: red; /* Stellt die Farbe des Punktes auf Rot */
+    animation: blink-animation 1s infinite; /* Fügt eine Blink-Animation hinzu */
+}
+
+/* Definiert die Blink-Animation */
+@keyframes blink-animation {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+#ottp-filter-button {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    display: block;
+    z-index: 100;
+    box-shadow: inset 0px 1px 3px 0px #91b8b3;
+    background: linear-gradient(to bottom, #768d87 5%, #6c7c7c 100%);
+    background-color: #768d87;
+    border-radius: 5px;
+    border: 1px solid #566963;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Arial;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 9px 14px;
+    text-decoration: none;
+    text-shadow: 0px -1px 0px #2b665e;
+    transform: rotate(90deg);
+}
+
+#ottp-filter-button:hover {
+    background: linear-gradient(to bottom, #6c7c7c 5%, #768d87 100%);
+    background-color: #6c7c7c;
+}
+
+#ottp-filter-button:active {
+    bottom: 9px;
+}
+
+#ottp-filter-content {
+    position: fixed;
+    bottom: 60px;
+    left: 10px;
+    display: none;
+    z-index: 100;
+    background-color: #6c7c7c;
+    border-radius: 5px;
+    border: 1px solid #566963;
+    padding: 10px;
+}
+
+#ottp-filter-content.open {
+    display: block;
+}
+
+#ottp-filter-content ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#ottp-info-box {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    max-width: 200px;
+    display: none;
+    z-index: 100;
+    box-shadow: inset 0px 1px 3px 0px #91b8b3;
+    background: linear-gradient(to bottom, #768d87 5%, #6c7c7c 100%);
+    background-color: #768d87;
+    border-radius: 5px;
+    border: 1px solid #566963;
+    padding: 5px;
+}
+
+#ottp-info-box.open {
+    display: block;
+}

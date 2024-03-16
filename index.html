@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>OTTP - Open TableTop Pathing</title>
+    <link rel="stylesheet" href="./src/ottp.css">
+</head>
+
+<body>
+    <div id="ottp-action-navigation" class="">Start Navigation</div>
+    <div id="ottp-filter-button">|||</div>
+    <div id="ottp-filter-content">
+        <ul>
+            <!--li><input type="checkbox" id="info_coordinated" name="info_koordinates">Show: Koordinaten</!--li-->
+        </ul>
+    </div>
+    <div id="ottp-info-box"></div>
+    <canvas id="ottp-map"></canvas>
+    <script src="./src/ottp.js"></script>
+    <script src="./assets/point.js"></script>
+    <script src="./assets/routes.js"></script>
+    <script>
+        const ottp = new OTTP();
+        ottp.addLayer(0, 'Layer: Background', './assets/layer_0.svg', true);
+        ottp.addLayer(1, 'Layer: Inseln', './assets/layer_1.svg', true);
+        ottp.addLayer(2, 'Layer: Namen', './assets/layer_2.svg', true);
+        ottp.addLayer(3, 'Layer: Routen', './assets/layer_3.svg', true);
+
+        for (let i = 0; i < points.length; i++) {
+            ottp.addPoint(points[i][0], points[i][1], points[i][2]);
+        }
+        ottp.init();
+    </script>
+</body>
+
+</html>
