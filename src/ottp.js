@@ -342,7 +342,7 @@ class OTTPWorldPoint {
 
 class OTTP {
   constructor() {
-    this.debug = true;
+    this.debug = false;
     // Components
     this.infoBox = new OTTPInfoBox(this.debug);
     this.contextMenu = new OTTPContextMenu();
@@ -392,10 +392,8 @@ class OTTP {
     this.canvas.addEventListener("mouseleave", this.onCanvasMouseLeave.bind(this));
 
     // Debug
-    if (this.debug) {
-      // this.infoBox.updateContent("Debug", "true");
-      this.infoBox.show();
-    }
+    // this.infoBox.updateContent("Debug", "true");
+    this.infoBox.show();
 
     // Scale
     this.onResize();
