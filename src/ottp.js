@@ -169,7 +169,8 @@ function compareWeights(a, b) {
 
 class OTTPInfoBox {
   // TODO: Dynamisch Tag hinzufügen
-  constructor() {
+  constructor(debug = false) {
+    this.debug = debug;
     this.box = document.getElementById("ottp-info-box");
     this.content = {};
     this.renderContent();
@@ -192,20 +193,27 @@ class OTTPInfoBox {
   renderContent() {
     let content = "";
 
-    if (this.content.Name) {
-      content += `<h3>${this.content.Name}</h3>`;
-    }
-    if (this.content.Description) {
-      content += `<p>${this.content.Description}</p>`;
-    }
-    if (this.content.X) {
-      content += `X: ${this.content.X}<br/>`;
-    }
-    if (this.content.Y) {
-      content += `Y: ${this.content.Y}<br/>`;
-    }
-    if (this.content.Distance) {
-      content += `Distance: ${this.content.Distance}<br/>`;
+    if (this.debug) {
+      content += "<h3>Debug</h3>";
+      for (const [key, value] of Object.entries(this.content)) {
+        content += `${key}: ${value}<br />`;
+      }
+    } else {
+      if (this.content.Name) {
+        content += `<h3>${this.content.Name}</h3>`;
+      }
+      if (this.content.Description) {
+        content += `<p>${this.content.Description}</p>`;
+      }
+      if (this.content.X) {
+        content += `X: ${this.content.X}<br/>`;
+      }
+      if (this.content.Y) {
+        content += `Y: ${this.content.Y}<br/>`;
+      }
+      if (this.content.Distance) {
+        content += `Distance: ${this.content.Distance}<br/>`;
+      }
     }
 
     this.box.innerHTML = content;
@@ -320,7 +328,7 @@ class OTTP {
   constructor() {
     this.debug = true;
     // Components
-    this.infoBox = new OTTPInfoBox();
+    this.infoBox = new OTTPInfoBox(this.debug);
     this.contextMenu = new OTTPContextMenu();
     this.navigation = new OTTPNavigation(this.onStartNavigation.bind(this));
     this.dijkstra = new OTTPGraph();
@@ -427,10 +435,10 @@ class OTTP {
     // this.infoBox.updateContent("real X", event.clientX);
     // this.infoBox.updateContent("real Y", event.clientY);
 
-    let x = event.clientX - this.offset.X;
-    let y = event.clientY - this.offset.Y;
-    this.infoBox.updateContent("X", x);
-    this.infoBox.updateContent("Y", y);
+    let x = (event.clientX - this.offset.X) / this.scaleFactor;
+    let y = (event.clientY - this.offset.Y) / this.scaleFactor;
+    this.infoBox.updateContent("X", Math.round(x));
+    this.infoBox.updateContent("Y", Math.round(y));
 
     // this.infoBox.updateContent("offsetX", this.offset.X);
     // this.infoBox.updateContent("offsetY", this.offset.Y);
@@ -439,8 +447,8 @@ class OTTP {
       this.checkSelectedPoints(x, y);
       if (this.selectedPoint) {
         // Punkt zeichnen
-        let drawX = this.selectedPoint.X + this.offset.X;
-        let drawY = this.selectedPoint.Y + this.offset.Y;
+        let drawX = this.selectedPoint.X * this.scaleFactor + this.offset.X;
+        let drawY = this.selectedPoint.Y * this.scaleFactor + this.offset.Y;
         this.drawMap();
         this.drawMarker(drawX, drawY);
       }
@@ -540,7 +548,23 @@ class OTTP {
     this.updateMap();
   }
 
-  zoomMap() {}
+  zoomMap(event) {
+    event.preventDefault();
+    const zoomIntensity = 0.1;
+    const delta = event.deltaY > 0 ? -1 : 1;
+
+    // Berechne den neuen Zoomfaktor
+    const newScaleFactor = this.scaleFactor + delta * zoomIntensity;
+    const scaleFactorRatio = newScaleFactor / this.scaleFactor;
+
+    if (newScaleFactor > 0.2 && newScaleFactor < 2) {
+      this.offset.X = this.offset.X * scaleFactorRatio;
+      this.offset.Y = this.offset.Y * scaleFactorRatio;
+      this.scaleFactor = newScaleFactor;
+    }
+
+    this.updateMap();
+  }
 
   updateMap(full = false) {
     if (full) {
@@ -551,8 +575,8 @@ class OTTP {
 
   drawMap() {
     // Größe der Karte
-    const width = this.maxWidth * this.scaleFactor;
-    const height = this.maxHeight * this.scaleFactor;
+    const width = this.maxWidth;
+    const height = this.maxHeight;
     // Clear
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.save();
@@ -582,7 +606,6 @@ class OTTP {
 
     // Route Zeichen (vor der Marker sonst werden die Marker übermalt)
     if (this.routeDistance > 0) {
-      console.log(this.routePath);
       for (let i = 0; i < this.routePath.length - 1; i++) {
         const start = this.points.find((p) => p.id === this.routePath[i]);
         const end = this.points.find((p) => p.id === this.routePath[i + 1]);
