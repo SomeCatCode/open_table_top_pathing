@@ -27,20 +27,20 @@
         // Klasse OTTP erzeugen
         const ottp = new OTTP();
 
-        // Layer hinzufügen
-        ottp.addLayer(0, 'Layer: Background', './assets/layer_0.svg', false);
+        // Layer hinzufügen - addLayer(layerId, layerName, layerPath, layerInitialVisible)
+        ottp.addLayer(0, 'Layer: Background', './assets/layer_0.png', false);
         ottp.addLayer(1, 'Layer: Inseln', './assets/layer_1.svg', true);
         ottp.addLayer(2, 'Layer: Namen', './assets/layer_2.svg', true);
         ottp.addLayer(3, 'Layer: Routen', './assets/layer_3.svg', true);
 
-        // Punkte laden
+        // Punkte laden - addPoint(x, y, pointId)
         for (let i = 0; i < points.length; i++) {
-            ottp.addPoint(points[i][0], points[i][1], points[i][2]);
+            ottp.addPoint(points[i][0], points[i][1], (points[i][2] * 1));
         }
 
-        // Routen laden
+        // Routen laden - addRoute(startPointId, endPointId, routeWeight)
         for (let i = 0; i < routes.length; i++) {
-            ottp.addRoute(routes[i][0], routes[i][1], routes[i][2]);
+            ottp.addRoute((routes[i][0] * 1), (routes[i][1] * 1), routes[i][2]);
         }
 
         // Initialisieren

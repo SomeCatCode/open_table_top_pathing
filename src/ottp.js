@@ -85,7 +85,16 @@ class OTTPGraph {
     this.nodes = {};
   }
 
+  debug() {
+    console.log(this.nodes);
+  }
+
   addEdge(start, end, weight = 0) {
+    // make sure that they are numeric
+    start = start * 1;
+    end = end * 1;
+    weight = weight * 1;
+
     if (!this.nodes[start]) {
       this.nodes[start] = [];
     }
@@ -159,6 +168,7 @@ function compareWeights(a, b) {
 }
 
 class OTTPInfoBox {
+  // TODO: Dynamisch Tag hinzufügen
   constructor() {
     this.box = document.getElementById("ottp-info-box");
     this.content = {};
@@ -197,16 +207,23 @@ class OTTPInfoBox {
 }
 
 class OTTPContextMenu {
-  constructor() {
+  // TODO: Dynamisch Tag hinzufügen
+  constructor(openCallback = null) {
     this.labelPrefix = "ottp-layer-";
+
     this.button = document.getElementById("ottp-filter-button");
     this.context = document.getElementById("ottp-filter-content");
+
+    this.button.addEventListener("click", this.onClick.bind(this));
+    this.openCallback = openCallback;
   }
 
-  init() {
-    this.button.addEventListener("click", () => {
-      this.context.classList.toggle("open");
-    });
+  onClick() {
+    this.context.classList.toggle("open");
+
+    if (this.openCallback) {
+      this.openCallback();
+    }
   }
 
   addCheckbox(id, label, callback, enabled = true) {
@@ -227,9 +244,11 @@ class OTTPContextMenu {
 }
 
 class OTTPNavigation {
-  constructor() {
+  // TODO: Dynamisch Tag hinzufügen
+  constructor(openCallback = null) {
     this.button = document.getElementById("ottp-action-navigation");
     this.button.addEventListener("click", this.onClick.bind(this));
+    this.openCallback = openCallback;
   }
 
   isRunning() {
@@ -237,32 +256,38 @@ class OTTPNavigation {
   }
 
   onClick() {
+    let running = this.isRunning();
     this.button.classList.toggle("running");
-    this.button.innerHTML = this.isRunning() ? "Stop Navigation" : "Start Navigation";
+    this.button.innerHTML = running ? "Stop Navigation" : "Start Navigation";
+
+    // Callback
+    if (this.openCallback) {
+      this.openCallback(running);
+    }
   }
 }
 
 class OTTPWorldPoint {
   constructor(x, y, id) {
-    this.x = x;
-    this.y = y;
+    this.X = x;
+    this.Y = y;
     this.color = "#ff0000";
     this.radius = 10;
-    this.id = id;
+    this.id = id * 1;
     this.highlighted = false;
   }
 
   highlight(x, y) {
-    const dx = this.x - x;
-    const dy = this.y - y;
+    const dx = this.X - x;
+    const dy = this.Y - y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     this.highlighted = distance < this.radius;
     return this.highlighted;
   }
 
   compare(x, y, worldPoint) {
-    const dxThis = this.x - x;
-    const dyThis = this.y - y;
+    const dxThis = this.X - x;
+    const dyThis = this.Y - y;
     const distanceThis = Math.sqrt(dxThis * dxThis + dyThis * dyThis);
 
     const dxWorldPoint = worldPoint.x - x;
@@ -281,31 +306,40 @@ class OTTP {
     // Components
     this.infoBox = new OTTPInfoBox();
     this.contextMenu = new OTTPContextMenu();
-    this.navigation = new OTTPNavigation();
+    this.navigation = new OTTPNavigation(this.onStartNavigation.bind(this));
     this.dijkstra = new OTTPGraph();
-    // Kontext-Menu
-    this.filterButton = document.getElementById("ottp-filter-button");
-    this.filterContext = document.getElementById("ottp-filter-content");
     // Real canvas
     this.canvas = document.getElementById("ottp-map");
-    this.ctx = this.canvas.getContext("2d");
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
+    this.ctx = this.canvas.getContext("2d");
+    this.ctx.imageSmoothingEnabled = false;
+
     // Virtual canvas
     this.vCanvas = document.createElement("canvas");
     this.vCtx = this.vCanvas.getContext("2d");
+    this.vCtx.imageSmoothingEnabled = false;
     // Data
     this.layers = {};
     this.points = [];
+    this.paths = [];
     this.isDragging = false;
     this.maxWidth = 3439;
     this.maxHeight = 3175;
     this.scaleFactor = 1;
-    this.offset = { X: 0, Y: 0 };
+    this.offset = { X: this.maxWidth / -4, Y: this.maxHeight / -4 };
     this.clickStart = { X: 0, Y: 0 };
     this.selectedPoint = null;
     this.routeStart = null;
     this.routeEnd = null;
+    this.routeDistance = 0;
+    this.routePath = [];
+    // Marker
+    this.markerPoint = new Image();
+    this.markerPoint.src = "./src/marker.png";
+    this.markerSet = new Image();
+    this.markerSet.src = "./src/marker_set.png";
+    //
   }
 
   init() {
@@ -317,11 +351,6 @@ class OTTP {
     this.canvas.addEventListener("mouseup", this.onCanvasMouseUp.bind(this));
     this.canvas.addEventListener("mouseleave", this.onCanvasMouseLeave.bind(this));
 
-    // Menu auf/zu
-    this.filterButton.addEventListener("click", () => {
-      this.filterContext.classList.toggle("open");
-    });
-
     // Debug
     if (this.debug) {
       this.infoBox.updateContent("Debug", "true");
@@ -332,33 +361,45 @@ class OTTP {
     this.onResize();
   }
 
+  onStartNavigation(running) {
+    if(!running) {
+      this.routeStart = null;
+      this.routeEnd = null;
+    }
+  }
+  //#endregion
   onCanvasMouseDown(event) {
     this.isDragging = true;
     this.clickStart.X = event.clientX - this.offset.X;
     this.clickStart.Y = event.clientY - this.offset.Y;
   }
 
-  updateSelectedPoint(x, y) {
-    let highlightedPoints = [];
-    // Sammel alle Punkte ein, die hervorgehoben werden
+  checkSelectedPoints(x, y) {
+    let selectedPoint = null;
+
+    // Iteriere über alle Punkte und prüfe, ob einer hervorgehoben wird, der mit den geringsten Abstand zu (x, y) hat
     for (let i = 0; i < this.points.length; i++) {
-      if (this.points[i].highlight(x, y)) {
-        highlightedPoints.push(this.points[i]);
+      if (this.routeStart !== this.points[i] && this.points[i].highlight(x, y)) {
+        if (selectedPoint === null || this.points[i] === this.points[i].compare(x, y, selectedPoint)) {
+          selectedPoint = this.points[i];
+        }
       }
     }
-    // bestimme den nähsten Punkt
-    if (highlightedPoints.length == 1) {
-      this.selectedPoint = highlightedPoints[0];
-      this.infoBox.updateContent("Highlighted Point", this.selectedPoint.id);
-    } else if (highlightedPoints.length > 0) {
-      this.selectedPoint = highlightedPoints[0];
-      for (let i = 0; i < highlightedPoints.length - 1; i++) {
-        this.selectedPoint = this.selectedPoint.compare(x, y, highlightedPoints[i + 1]);
-      }
+
+    this.updateSelectedPoint(selectedPoint);
+  }
+
+  updateSelectedPoint(obj) {
+    if (this.selectedPoint != obj) {
+      this.drawMap();
+    }
+
+    if (obj) {
+      this.selectedPoint = obj;
       this.infoBox.updateContent("Highlighted Point", this.selectedPoint.id);
     } else {
-      this.infoBox.updateContent("Highlighted Point", "none");
       this.selectedPoint = null;
+      this.infoBox.updateContent("Highlighted Point", "none");
     }
   }
 
@@ -375,11 +416,11 @@ class OTTP {
     this.infoBox.updateContent("offsetY", this.offset.Y);
 
     if (this.navigation.isRunning()) {
-      this.updateSelectedPoint(x, y);
+      this.checkSelectedPoints(x, y);
       if (this.selectedPoint) {
         // Punkt zeichnen
-        let drawX = this.selectedPoint.x + this.offset.X;
-        let drawY = this.selectedPoint.y + this.offset.Y;
+        let drawX = this.selectedPoint.X + this.offset.X;
+        let drawY = this.selectedPoint.Y + this.offset.Y;
         this.drawMap();
         this.drawMarker(drawX, drawY);
       }
@@ -421,13 +462,25 @@ class OTTP {
       if (this.routeStart === null || (this.routeStart !== null && this.routeEnd !== null)) {
         this.routeStart = this.selectedPoint;
         this.routeEnd = null;
+        this.routePath = [];
+        this.routeDistance = 0;
       } else {
         this.routeEnd = this.selectedPoint;
+
+        const [_, prev] = this.dijkstra.paths_from(this.routeStart.id);
+        const path = this.dijkstra.paths_to(prev, this.routeEnd.id);
+        this.routePath = path;
+        this.routeDistance = this.getDistance(path);
+        this.navigation.onClick();
       }
-      this.infoBox.updateContent("RouteStart", this.routeStart.id);
-      this.infoBox.updateContent("RouteEnd", this.routeEnd.id);
+
+      this.infoBox.updateContent("RouteStart", this.routeStart ? this.routeStart.id : "none");
+      this.infoBox.updateContent("RouteEnd", this.routeEnd ? this.routeEnd.id : "none");
+      this.infoBox.updateContent("RouteDistance", this.routeDistance);
+      this.updateMap(true);
     }
   }
+
   onCanvasMouseLeave() {
     this.isDragging = false;
   }
@@ -444,14 +497,12 @@ class OTTP {
       id,
       label,
       () => {
-        this.updateVMap();
-        this.drawMap();
+        this.updateMap(true);
       },
       enabled
     );
 
-    this.updateVMap();
-    this.drawMap();
+    this.updateMap(true);
   }
 
   addPoint(x, y, id) {
@@ -460,15 +511,23 @@ class OTTP {
 
   addRoute(from, to, weight) {
     this.dijkstra.addEdge(from, to, weight);
+    this.paths.push([from, to, weight]);
   }
 
   onResize() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
-    this.drawMap();
+    this.updateMap();
   }
 
   zoomMap() {}
+
+  updateMap(full = false) {
+    if (full) {
+      this.updateVMap();
+    }
+    this.drawMap();
+  }
 
   drawMap() {
     // Größe der Karte
@@ -478,6 +537,7 @@ class OTTP {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.save();
     // Draw
+    this.ctx.imageSmoothingEnabled = false;
     this.ctx.translate(this.offset.X, this.offset.Y);
     this.ctx.scale(this.scaleFactor, this.scaleFactor);
     this.ctx.drawImage(this.vCanvas, 0, 0, width, height);
@@ -493,17 +553,38 @@ class OTTP {
     this.vCtx.clearRect(0, 0, this.maxWidth, this.maxHeight);
     this.vCtx.save();
 
+    // Layer zeichnen
     for (const [id, layer] of Object.entries(this.layers)) {
       if (this.contextMenu.is(id)) {
         this.vCtx.drawImage(layer, 0, 0, this.maxWidth, this.maxHeight);
       }
     }
 
-    if (this.navigation.isRunning()) {
-      if (this.navigationStart.X !== 0 && this.navigationStart.Y !== 0) {
-        this.infoBox.updateContent("Start", this.navigationStart.X + ":" + this.navigationStart.Y);
-        this.drawSetMarker(this.navigationStart.X, this.navigationStart.Y);
+    // Route Zeichen (vor der Marker sonst werden die Marker übermalt)
+    if (this.routeDistance > 0) {
+      console.log(this.routePath);
+      for (let i = 0; i < this.routePath.length - 1; i++) {
+        const start = this.points.find((p) => p.id === this.routePath[i]);
+        const end = this.points.find((p) => p.id === this.routePath[i + 1]);
+        this.vCtx.beginPath();
+        this.vCtx.moveTo(start.X, start.Y);
+        this.vCtx.lineTo(end.X, end.Y);
+        this.vCtx.strokeStyle = "#ff0000";
+        this.vCtx.lineWidth = 5;
+        this.vCtx.lineCap = "round";
+        this.vCtx.stroke();
       }
+    }
+
+    // Marker zeichnen
+    if (this.routeStart) {
+      this.infoBox.updateContent("RouteStart", this.routeStart.X + ":" + this.routeStart.Y);
+      this.vCtx.drawImage(this.markerSet, this.routeStart.X - 5, this.routeStart.Y - 40, 40, 40);
+    }
+
+    if (this.routeEnd) {
+      this.infoBox.updateContent("RouteEnd", this.routeEnd.X + ":" + this.routeEnd.Y);
+      this.vCtx.drawImage(this.markerSet, this.routeEnd.X - 5, this.routeEnd.Y - 40, 40, 40);
     }
 
     // Restore
@@ -511,16 +592,23 @@ class OTTP {
   }
 
   drawMarker(x, y) {
-    this.infoBox.updateContent("Marker", x + ":" + y);
-    let img = new Image();
-    img.src = "./src/marker.png";
-    this.ctx.drawImage(img, x, y - 40, 40, 40);
+    this.ctx.drawImage(this.markerPoint, x, y - 40, 40, 40);
   }
 
-  drawSetMarker(x, y) {
-    this.infoBox.updateContent("SetMarker", x + ":" + y);
-    let img = new Image();
-    img.src = "./src/marker_set.png";
-    this.vCtx.drawImage(img, x - 20, y - 40, 40, 40);
+  getDistance(route) {
+    let distance = 0; // Initialisiere distance
+
+    for (let i = 0; i < route.length - 1; i++) {
+      let a = route[i]; // Speichere das aktuelle Element in a
+      let b = route[i + 1]; // Speichere das nächste Element in b
+
+      this.paths.forEach((p) => {
+        if (p[0] === a && p[1] === b) {
+          distance += p[2]; // Addiere die Distanz, wenn die Bedingung erfüllt ist
+        }
+      });
+    }
+
+    return Math.round(distance * 100) / 100; // Runde die Distanz auf zwei Dezimalstellen
   }
 }
