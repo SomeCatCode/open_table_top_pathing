@@ -353,7 +353,7 @@ class OTTP {
 
     // Debug
     if (this.debug) {
-      this.infoBox.updateContent("Debug", "true");
+      // this.infoBox.updateContent("Debug", "true");
       this.infoBox.show();
     }
 
@@ -396,24 +396,24 @@ class OTTP {
 
     if (obj) {
       this.selectedPoint = obj;
-      this.infoBox.updateContent("Highlighted Point", this.selectedPoint.id);
+      // this.infoBox.updateContent("Highlighted Point", this.selectedPoint.id);
     } else {
       this.selectedPoint = null;
-      this.infoBox.updateContent("Highlighted Point", "none");
+      // this.infoBox.updateContent("Highlighted Point", "none");
     }
   }
 
   onCanvasMouseMove(event) {
-    this.infoBox.updateContent("real X", event.clientX);
-    this.infoBox.updateContent("real Y", event.clientY);
+    // this.infoBox.updateContent("real X", event.clientX);
+    // this.infoBox.updateContent("real Y", event.clientY);
 
     let x = event.clientX - this.offset.X;
     let y = event.clientY - this.offset.Y;
-    this.infoBox.updateContent("X", x);
-    this.infoBox.updateContent("Y", y);
+    // this.infoBox.updateContent("X", x);
+    // this.infoBox.updateContent("Y", y);
 
-    this.infoBox.updateContent("offsetX", this.offset.X);
-    this.infoBox.updateContent("offsetY", this.offset.Y);
+    // this.infoBox.updateContent("offsetX", this.offset.X);
+    // this.infoBox.updateContent("offsetY", this.offset.Y);
 
     if (this.navigation.isRunning()) {
       this.checkSelectedPoints(x, y);
@@ -474,8 +474,8 @@ class OTTP {
         this.navigation.onClick();
       }
 
-      this.infoBox.updateContent("RouteStart", this.routeStart ? this.routeStart.id : "none");
-      this.infoBox.updateContent("RouteEnd", this.routeEnd ? this.routeEnd.id : "none");
+      // this.infoBox.updateContent("RouteStart", this.routeStart ? this.routeStart.id : "none");
+      // this.infoBox.updateContent("RouteEnd", this.routeEnd ? this.routeEnd.id : "none");
       this.infoBox.updateContent("RouteDistance", this.routeDistance);
       this.updateMap(true);
     }
@@ -578,12 +578,12 @@ class OTTP {
 
     // Marker zeichnen
     if (this.routeStart) {
-      this.infoBox.updateContent("RouteStart", this.routeStart.X + ":" + this.routeStart.Y);
+      // this.infoBox.updateContent("RouteStart", this.routeStart.X + ":" + this.routeStart.Y);
       this.vCtx.drawImage(this.markerSet, this.routeStart.X - 5, this.routeStart.Y - 40, 40, 40);
     }
 
     if (this.routeEnd) {
-      this.infoBox.updateContent("RouteEnd", this.routeEnd.X + ":" + this.routeEnd.Y);
+      // this.infoBox.updateContent("RouteEnd", this.routeEnd.X + ":" + this.routeEnd.Y);
       this.vCtx.drawImage(this.markerSet, this.routeEnd.X - 5, this.routeEnd.Y - 40, 40, 40);
     }
 
