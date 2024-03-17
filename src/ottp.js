@@ -362,7 +362,7 @@ class OTTP {
   }
 
   onStartNavigation(running) {
-    if(!running) {
+    if(!!running) {
       this.routeStart = null;
       this.routeEnd = null;
     }
