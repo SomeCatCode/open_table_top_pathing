@@ -362,7 +362,7 @@ class OTTP {
   }
 
   onStartNavigation(running) {
-    if(!!running) {
+    if (!!running) {
       this.routeStart = null;
       this.routeEnd = null;
     }
@@ -409,8 +409,8 @@ class OTTP {
 
     let x = event.clientX - this.offset.X;
     let y = event.clientY - this.offset.Y;
-    // this.infoBox.updateContent("X", x);
-    // this.infoBox.updateContent("Y", y);
+    this.infoBox.updateContent("X", x);
+    this.infoBox.updateContent("Y", y);
 
     // this.infoBox.updateContent("offsetX", this.offset.X);
     // this.infoBox.updateContent("offsetY", this.offset.Y);
