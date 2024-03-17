@@ -256,9 +256,9 @@ class OTTPNavigation {
   }
 
   onClick() {
-    let running = this.isRunning();
     this.button.classList.toggle("running");
-    this.button.innerHTML = running ? "Stop Navigation" : "Start Navigation";
+    let running = this.isRunning();
+    this.button.innerHTML = !!running ? "Stop Navigation" : "Start Navigation";
 
     // Callback
     if (this.openCallback) {
