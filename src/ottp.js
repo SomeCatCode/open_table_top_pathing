@@ -168,10 +168,14 @@ function compareWeights(a, b) {
 }
 
 class OTTPInfoBox {
-  // TODO: Dynamisch Tag hinzufügen
   constructor(debug = false) {
     this.debug = debug;
-    this.box = document.getElementById("ottp-info-box");
+
+    this.box = document.createElement("div");
+    this.box.id = "ottp-info-box";
+    this.box.className = "";
+    document.body.appendChild(this.box);
+
     this.content = {};
     this.renderContent();
   }
@@ -229,14 +233,22 @@ class OTTPInfoBox {
 }
 
 class OTTPContextMenu {
-  // TODO: Dynamisch Tag hinzufügen
   constructor(openCallback = null) {
     this.labelPrefix = "ottp-layer-";
 
-    this.button = document.getElementById("ottp-filter-button");
-    this.context = document.getElementById("ottp-filter-content");
-
+    this.button = document.createElement("div");
+    this.button.id = "ottp-filter-button";
+    this.button.className = "";
+    this.button.textContent = "|||";
     this.button.addEventListener("click", this.onClick.bind(this));
+    document.body.appendChild(this.button);
+
+    this.context = document.createElement("div");
+    this.context.id = "ottp-filter-content";
+    this.context.className = "";
+    this.context.innerHTML = "<ul></ul>";
+    document.body.appendChild(this.context);
+
     this.openCallback = openCallback;
   }
 
@@ -266,10 +278,14 @@ class OTTPContextMenu {
 }
 
 class OTTPNavigation {
-  // TODO: Dynamisch Tag hinzufügen
   constructor(openCallback = null) {
-    this.button = document.getElementById("ottp-action-navigation");
+    this.button = document.createElement("div");
+    this.button.id = "ottp-action-navigation";
+    this.button.className = "";
+    this.button.textContent = "Start Navigation";
     this.button.addEventListener("click", this.onClick.bind(this));
+    document.body.appendChild(this.button);
+
     this.openCallback = openCallback;
   }
 
