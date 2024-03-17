@@ -34,12 +34,11 @@
         ottp.addLayer(2, 'Layer: Namen', './assets/layer_2.svg', true);
         ottp.addLayer(3, 'Layer: Routen', './assets/layer_3.svg', true);
 
-        // Debug
-        console.log(findSimularPoints(points));
-        
+      
+
         // Punkte laden - addPoint(x, y, pointId)
         for (let i = 0; i < points.length; i++) {
-            ottp.addPoint(points[i][0], points[i][1], (points[i][2] * 1));
+            ottp.addPoint(points[i][0], points[i][1], (points[i][2] * 1), points[i][3] || null, points[i][4] || null);
         }
 
         // Routen laden - addRoute(startPointId, endPointId, routeWeight)

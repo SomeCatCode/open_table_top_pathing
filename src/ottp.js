@@ -191,9 +191,23 @@ class OTTPInfoBox {
 
   renderContent() {
     let content = "";
-    for (const [key, value] of Object.entries(this.content)) {
-      content += `${key}: ${value}</br>`;
+
+    if (this.content.Name) {
+      content += `<h3>${this.content.Name}</h3>`;
     }
+    if (this.content.Description) {
+      content += `<p>${this.content.Description}</p>`;
+    }
+    if (this.content.X) {
+      content += `X: ${this.content.X}<br/>`;
+    }
+    if (this.content.Y) {
+      content += `Y: ${this.content.Y}<br/>`;
+    }
+    if (this.content.Distance) {
+      content += `Distance: ${this.content.Distance}<br/>`;
+    }
+
     this.box.innerHTML = content;
   }
 
@@ -268,13 +282,15 @@ class OTTPNavigation {
 }
 
 class OTTPWorldPoint {
-  constructor(x, y, id) {
+  constructor(x, y, id, name, description) {
     this.X = x;
     this.Y = y;
     this.color = "#ff0000";
     this.radius = 10;
     this.id = id * 1;
     this.highlighted = false;
+    this.Name = name;
+    this.Description = description;
   }
 
   highlight(x, y) {
@@ -396,9 +412,13 @@ class OTTP {
 
     if (obj) {
       this.selectedPoint = obj;
-      // this.infoBox.updateContent("Highlighted Point", this.selectedPoint.id);
+      this.infoBox.updateContent("Name", this.selectedPoint.Name);
+      this.infoBox.updateContent("Description", this.selectedPoint.Description);
+      //
     } else {
       this.selectedPoint = null;
+      this.infoBox.updateContent("Name", null);
+      this.infoBox.updateContent("Description", null);
       // this.infoBox.updateContent("Highlighted Point", "none");
     }
   }
@@ -476,7 +496,7 @@ class OTTP {
 
       // this.infoBox.updateContent("RouteStart", this.routeStart ? this.routeStart.id : "none");
       // this.infoBox.updateContent("RouteEnd", this.routeEnd ? this.routeEnd.id : "none");
-      this.infoBox.updateContent("RouteDistance", this.routeDistance);
+      this.infoBox.updateContent("Distance", this.routeDistance);
       this.updateMap(true);
     }
   }
@@ -505,8 +525,8 @@ class OTTP {
     this.updateMap(true);
   }
 
-  addPoint(x, y, id) {
-    this.points.push(new OTTPWorldPoint(x, y, id));
+  addPoint(x, y, id, name, description) {
+    this.points.push(new OTTPWorldPoint(x, y, id, name, description));
   }
 
   addRoute(from, to, weight) {

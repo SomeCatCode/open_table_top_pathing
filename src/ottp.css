@@ -117,3 +117,7 @@ body {
 #ottp-info-box.open {
     display: block;
 }
+
+#ottp-map {
+    filter:sepia(1);
+}
