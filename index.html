@@ -3,41 +3,117 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OTTP - Open TableTop Pathing</title>
-    <link rel="stylesheet" href="./src/ottp.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        .leaflet-container {
+            height: 400px;
+            width: 600px;
+            max-width: 100%;
+            max-height: 100%;
+            cursor: pointer;
+        }
+
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+
+        #info {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 200px;
+            background: rgba(255, 255, 255, .5);
+            z-index: 500;
+            font: 12px Arial;
+            line-height: normal;
+            line-height: 1em;
+            padding: 3px;
+        }
+    </style>
 </head>
 
 <body>
-    <canvas id="ottp-map"></canvas>
-    <script src="./src/helper.js"></script>
-    <script src="./src/ottp.js"></script>
-    <script src="./assets/point.js"></script>
-    <script src="./assets/routes.js"></script>
+    <div id="map"></div>
+    <div id="info">X:Y</div>
     <script>
-        // Klasse OTTP erzeugen
-        const ottp = new OTTP();
+        L.MouseMoveHandler = L.Handler.extend({
+            initialize: function (map) {
+                this._map = map;
+            },
 
-        // Layer hinzufügen - addLayer(layerId, layerName, layerPath, layerInitialVisible)
-        ottp.addLayer(0, 'Layer: Background', './assets/layer_0.png', true);
-        ottp.addLayer(1, 'Layer: Inseln', './assets/layer_1.svg', true);
-        ottp.addLayer(2, 'Layer: Namen', './assets/layer_2.svg', true);
-        ottp.addLayer(3, 'Layer: Routen', './assets/layer_3.svg', true);
+            addHooks() {
+                this._map.on('mousemove', this._mousemove, this);
+            },
 
-      
+            removeHooks() {
+                this._map.off('mousemove', this._mousemove, this);
+            },
 
-        // Punkte laden - addPoint(x, y, pointId)
-        for (let i = 0; i < points.length; i++) {
-            ottp.addPoint(points[i][0], points[i][1], (points[i][2] * 1), points[i][3] || null, points[i][4] || null);
+            _mousemove(event) {
+                // Zugriff auf die Koordinaten auf der Karte aus dem 'mousemove'-Event
+                var latLng = event.latlng;
+                var y = 12000 - event.latlng.lat;
+                var x = event.latlng.lng;
+                // Beispiel: Aktualisiere die Inhalte eines Info-Elements mit den Koordinaten
+                document.getElementById('info').innerHTML = `X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}`;
+            }
+        });
+
+        L.Map.addInitHook('addHandler', 'coords', L.MouseMoveHandler);
+
+
+        const bounds = [[0, 0], [12000, 13000]];
+        const imageLayer0 = L.imageOverlay('./assets/layer_0.png', bounds);
+        const svgLayer1 = L.imageOverlay('./assets/layer_1.svg', bounds);
+        const svgLayer2 = L.imageOverlay('./assets/layer_2.svg', bounds);
+        const svgLayer3 = L.imageOverlay('./assets/layer_3.svg', bounds);
+
+        var baseMaps = {
+            "Pergament": imageLayer0,
+        };
+
+        var overlayMaps = {
+            "Layer: Inseln": svgLayer1,
+            "Layer: Label": svgLayer2,
+            "Layer: Routen": svgLayer3
+        };
+
+
+        const map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -4,
+            maxZoom: 1,
+            layers: [imageLayer0, svgLayer1, svgLayer2, svgLayer3],
+            coords: true,
+            attributionControl: false
+        }).fitBounds(bounds).setView([6000, 3000], -2);
+
+        var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+        var popup = L.popup();
+        function onMapClick(e) {
+            var y = 12000 - e.latlng.lat;
+            var x = e.latlng.lng;
+            popup
+                .setLatLng(e.latlng)
+                .setContent(`You clicked the map at ${x}:${y}`)
+                .openOn(map);
         }
+        map.on('click', onMapClick);
 
-        // Routen laden - addRoute(startPointId, endPointId, routeWeight)
-        for (let i = 0; i < routes.length; i++) {
-            ottp.addRoute((routes[i][0] * 1), (routes[i][1] * 1), routes[i][2]);
-        }
 
-        // Initialisieren
-        ottp.init();
     </script>
 </body>
 
