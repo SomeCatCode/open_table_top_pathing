@@ -21,7 +21,7 @@ L.NavigationLayer = L.FeatureGroup.extend({
 
     const defaultIcon = L.icon({
       iconUrl: "./src/anchor.png", // Pfad zum Standardbild
-      iconSize: [20, 20], // Größe des Icons
+      iconSize: [30, 30], // Größe des Icons
     });
 
     // Hover Icon
@@ -33,7 +33,7 @@ L.NavigationLayer = L.FeatureGroup.extend({
     // Selected Icon
     const selectedIcon = L.icon({
       iconUrl: "./src/marker_set.png", // Pfad zum Bild für den geklickten Zustand
-      iconSize: [20, 20], // Größe des Icons für Klick
+      iconSize: [30, 30], // Größe des Icons für Klick
     });
 
     // Zeichne den Punkt auf der Karte
