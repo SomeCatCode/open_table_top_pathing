@@ -2,11 +2,17 @@ function parseLeafletPoint(pointData) {
   let id = pointData[2];
   let x = pointData[0];
   let y = 3175 - pointData[1];
+  let name = pointData[3] ? pointData[3] : null;
+  let description = pointData[4] ? pointData[4] : null;
+  let icon = pointData[5] ? pointData[5] : 'default';
 
   return {
     id: id,
     x: x,
     y: y,
+    name: name,
+    description: description,
+    icon: icon,
   };
 }
 

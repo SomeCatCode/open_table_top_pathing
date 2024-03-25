@@ -161,4 +161,22 @@ class DijkstraGraph {
     let [distances, prev] = this.paths_from(from);
     return this.paths_to(prev, to);
   }
+
+  
+  getDistance(route) {
+    let distance = 0; // Initialisiere distance
+
+    for (let i = 0; i < route.length - 1; i++) {
+      let a = route[i]; // Speichere das aktuelle Element in a
+      let b = route[i + 1]; // Speichere das nächste Element in b
+
+      this.nodes[a].forEach((p) => {
+        if (p.end === b) {
+          distance += p.weight; // Addiere die Distanz, wenn die Bedingung erfüllt ist
+        }
+      });
+    }
+
+    return Math.round(distance * 100) / 100; // Runde die Distanz auf zwei Dezimalstellen
+  }
 }

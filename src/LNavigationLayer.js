@@ -13,6 +13,9 @@ L.NavigationLayer = L.FeatureGroup.extend({
     this._dijkstra = new DijkstraGraph();
     this._points = [];
     this._paths = [];
+    this._startPoint = null;
+    this._endPoint = null;
+    this._distance = null;
   },
 
   addPoint: function (point) {
@@ -20,19 +23,13 @@ L.NavigationLayer = L.FeatureGroup.extend({
     this._points.push(point);
 
     const defaultIcon = L.icon({
-      iconUrl: "./src/anchor.png", // Pfad zum Standardbild
+      iconUrl: "./src/marker/" + point.icon + ".png", // Pfad zum Standardbild
       iconSize: [30, 30], // Größe des Icons
-    });
-
-    // Hover Icon
-    const hoverIcon = L.icon({
-      iconUrl: "./src/marker.png", // Pfad zum Bild für Hover-Zustand
-      iconSize: [20, 20], // Größe des Icons für Hover
     });
 
     // Selected Icon
     const selectedIcon = L.icon({
-      iconUrl: "./src/marker_set.png", // Pfad zum Bild für den geklickten Zustand
+      iconUrl: "./src/marker/selected.png", // Pfad zum Bild für den geklickten Zustand
       iconSize: [30, 30], // Größe des Icons für Klick
     });
 
@@ -40,14 +37,18 @@ L.NavigationLayer = L.FeatureGroup.extend({
     const circleMarker = L.marker([point.y, point.x], { icon: defaultIcon })
       .on("mouseover", (e) => {
         e.target.setIcon(selectedIcon);
+        if (point.name || point.description) {
+          e.target.bindPopup(`<h3>${point.name || ""}</h3>${point.description || ""}`).openPopup();
+        }
       })
       .on("mouseout", (e) => {
         e.target.setIcon(defaultIcon);
+        if (point.name || point.description) {
+          e.target.closePopup();
+        }
       })
       .on("click", (e) => {
-        e.target.setIcon(defaultIcon);
         this._onPointClick(point);
-        console.log(`Punkt ${point.id} ausgewählt`);
       });
     this.addLayer(circleMarker);
   },
@@ -57,15 +58,39 @@ L.NavigationLayer = L.FeatureGroup.extend({
     this._dijkstra.addEdge(edge.start, edge.end, edge.weight);
   },
 
+  _clearInfoBox: function () {
+    document.getElementById("navigation-info").classList.remove("active");
+  },
+
+  _showInfoBox: function () {
+    let infoBox = document.getElementById("navigation-info");
+    let routeBox = infoBox.getElementsByClassName("route")[0];
+    let distanceBox = infoBox.getElementsByClassName("distance")[0];
+
+    let route = "" 
+    + (this._startPoint ? (this._startPoint.name || "Punkt: " + this._startPoint.id) : '' ) 
+    + " - "
+    + (this._endPoint ? (this._endPoint.name || "Punkt: " + this._endPoint.id) : '' ) 
+    ;
+
+    routeBox.innerHTML = route;
+    distanceBox.innerHTML = `Distance: ${this._distance || 0}`;
+    infoBox.classList.add("active");
+  },
+
   _onPointClick: function (point) {
     if (!this._startPoint) {
-      this._startPoint = point;
-      this._clearRouteLayer();
       console.log(`Startpunkt ${point.id} gewählt`);
+      this._startPoint = point;
+      this._endPoint = null;
+      this._distance = 0;
+      this._clearRouteLayer();
+      this._showInfoBox();
     } else {
-      this._endPoint = point;
       console.log(`Endpunkt ${point.id} gewählt`);
+      this._endPoint = point;
       this._calculateAndDrawRoute();
+      this._showInfoBox();
       this._startPoint = null; // Setzt den Startpunkt zurück für die nächste Route
     }
   },
@@ -81,6 +106,7 @@ L.NavigationLayer = L.FeatureGroup.extend({
   _calculateAndDrawRoute: function () {
     const [_, prev] = this._dijkstra.paths_from(this._startPoint.id);
     const path = this._dijkstra.paths_to(prev, this._endPoint.id);
+    this._distance = this._dijkstra.getDistance(path);
 
     let lines = [];
     for (let i = 0; i < path.length; i++) {
@@ -90,6 +116,7 @@ L.NavigationLayer = L.FeatureGroup.extend({
       }
     }
 
+    this._showInfoBox();
     L.polyline(lines, { color: "green" }).addTo(this._routesLayer);
     this._routesLayer.addTo(this._map);
   },
