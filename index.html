@@ -5,10 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>OTTP - Open TableTop Pathing</title>
+    <!-- START:leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- END:leaflet -->
 
     <script src="./src/helper.js"></script>
     <script src="./assets/points.js"></script>
@@ -48,12 +50,61 @@
             line-height: 1em;
             padding: 3px;
         }
+
+        #navigation-info {
+            display: none;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            /* Zentriert die Box horizontal */
+            border-radius: 5px 5px 0 0;
+            min-width: 200px;
+            /* Minimale Breite */
+            max-width: 80%;
+            /* Maximale Breite */
+            background: rgba(255, 255, 255, .7);
+            z-index: 500;
+            font: 14px Arial;
+            line-height: normal;
+            padding: 3px;
+            overflow: hidden;
+            /* Verhindert das Überlaufen des Inhalts */
+        }
+
+        .route,
+        .distance {
+            padding: 5px;
+            margin: 0 auto;
+            text-align: center;
+            white-space: nowrap;
+            /* Verhindert den Umbruch von Text */
+            overflow: hidden;
+            /* Verhindert das Überlaufen des Inhalts */
+            text-overflow: ellipsis;
+            /* Fügt Ellipsen hinzu, wenn der Text überläuft */
+        }
+
+        .route {
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+
+
+
+        #navigation-info.active {
+            display: block;
+        }
     </style>
 </head>
 
 <body>
     <div id="map"></div>
     <div id="info">X:Y</div>
+    <div id="navigation-info">
+        <div class="route">-</div>
+        <div class="distance">Distance: 0</div>
+    </div>
     <script>
         const navigationLayer = new L.NavigationLayer();
         for (let i = 0; i < points.length; i++) {
@@ -68,13 +119,12 @@
 
         const bounds = [[0, 0], [3175, 3439]];
         const imageLayer0 = L.imageOverlay('./assets/layer_0.png', bounds);
+        const imageLayer1 = L.imageOverlay('./assets/layer_1.png', bounds);
         const svgLayer1 = L.imageOverlay('./assets/layer_1.svg', bounds);
         const svgLayer2 = L.imageOverlay('./assets/layer_2.svg', bounds);
         const svgLayer3 = L.imageOverlay('./assets/layer_3.svg', bounds);
 
-        var baseMaps = {
-            "Pergament": imageLayer0,
-        };
+        var baseMaps = { "Pergament": imageLayer0,"Pergament 2": imageLayer1 };
 
         var overlayMaps = {
             "Layer: Inseln": svgLayer1,
@@ -85,30 +135,14 @@
 
         const map = L.map('map', {
             crs: L.CRS.Simple,
-            minZoom: -4,
-            maxZoom: 1,
-            layers: [imageLayer0, svgLayer1, svgLayer2, svgLayer3, navigationLayer],
+            minZoom: -1,
+            maxZoom: 3,
+            layers: [imageLayer0, svgLayer1, svgLayer2, navigationLayer],
             coords: true,
             attributionControl: false
-            //}).fitBounds(bounds).setView([6000, 3000], -2);
         }).fitBounds(bounds).setView([1800, 1300], 0);
 
         var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
-
-
-
-        // Debug Klick
-        // var popup = L.popup();
-        // function onMapClick(e) {
-        //     const pos = XYFromEvent(e);
-        //     popup
-        //         .setLatLng(e.latlng)
-        //         .setContent(`You clicked the map at ${pos.x}:${pos.y}`)
-        //         .openOn(map);
-        // }
-        // map.on('click', onMapClick);
-
-
     </script>
 </body>
 
