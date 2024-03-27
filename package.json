@@ -1,0 +1,27 @@
+{
+  "name": "ottm",
+  "version": "1.0.0",
+  "description": "OTTP (Open TableTop Pathing) ist ein JavaScript-Tool, das es ermöglicht, interaktive Karten mit Drag- und Zoom-Funktionalität für Tabletop-Spiele oder andere Anwendungen zu erstellen. Es unterstützt das Hinzufügen von Layern, das Platzieren von Punkten auf der Karte und die Berechnung von Pfaden zwischen Punkten mit dem Dijkstra-Algorithmus.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SomeCatCode/open_table_top_pathing.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SomeCatCode/open_table_top_pathing/issues"
+  },
+  "homepage": "https://github.com/SomeCatCode/open_table_top_pathing#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.2.3",
+    "moongoose": "^0.0.1",
+    "pg": "^8.11.3"
+  }
+}

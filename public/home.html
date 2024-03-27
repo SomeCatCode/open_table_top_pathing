@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OTTP - Open TableTop Pathing</title>
+
+    <!-- START:leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- END:leaflet -->
+
+    <link rel="stylesheet" href="src/ottp.css">
+    <script src="src/ottp.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        const ottp = new OTTP("map");
+
+        // Glaube ich will das so in der Art machen 
+        ottp.newMap("mapId", {
+            // Hier dann so der Leaflet Kram
+            crs: L.CRS.Simple,
+            minZoom: -1,
+            maxZoom: 3,
+            layers: [imageLayer0, svgLayer1, svgLayer2, navigationLayer],
+            coords: true,
+            attributionControl: false
+        });
+        ottp.getMap("mapId").fitBounds(bounds).setView([1800, 1300], 0);
+
+
+
+        // Das muss ich verwurschteln 
+        const navigationLayer = new L.NavigationLayer();
+        for (let i = 0; i < points.length; i++) {
+            navigationLayer.addPoint(parseLeafletPoint(points[i]));
+        }
+
+        for (let i = 0; i < routes.length; i++) {
+            navigationLayer.addEdge(parseLeafletEdge(routes[i]));
+        }
+
+        L.Map.addInitHook('addHandler', 'coords', L.MouseMoveHandler);
+
+        const bounds = [[0, 0], [3175, 3439]];
+        const imageLayer0 = L.imageOverlay('./assets/layer_0.png', bounds);
+        const imageLayer1 = L.imageOverlay('./assets/layer_1.png', bounds);
+        const svgLayer1 = L.imageOverlay('./assets/layer_1.svg', bounds);
+        const svgLayer2 = L.imageOverlay('./assets/layer_2.svg', bounds);
+        const svgLayer3 = L.imageOverlay('./assets/layer_3.svg', bounds);
+
+        var baseMaps = { "Pergament": imageLayer0, "Pergament 2": imageLayer1 };
+
+        var overlayMaps = {
+            "Layer: Inseln": svgLayer1,
+            "Layer: Label": svgLayer2,
+            "Layer: Routen": svgLayer3,
+            "Layer: Navigation": navigationLayer
+        };
+
+        const map = L.map('map', {
+            crs: L.CRS.Simple,
+            minZoom: -1,
+            maxZoom: 3,
+            layers: [imageLayer0, svgLayer1, svgLayer2, navigationLayer],
+            coords: true,
+            attributionControl: false
+        }).fitBounds(bounds).setView([1800, 1300], 0);
+
+        var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+    </script>
+</body>
+
+</html>
